@@ -6,7 +6,7 @@ import com.example.comicshub.data.repository.data_source.ComicsRemoteDataSource
 import retrofit2.Response
 
 class ComicsRemoteDataSourceImplementation (private val comicsAPIService: ComicsAPIService): ComicsRemoteDataSource {
-    override suspend fun getComicData(): Response<APIResponse> {
-        return comicsAPIService.getComicData()
+    override suspend fun getComicData(comicNumber : Int): Response<APIResponse> {
+        return comicsAPIService.getComicData(comicNumber)
     }
 }

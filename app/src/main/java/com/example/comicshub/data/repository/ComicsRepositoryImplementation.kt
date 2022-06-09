@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.Flow
 import retrofit2.Response
 
 class ComicsRepositoryImplementation (private val comicsRemoteDataSource: ComicsRemoteDataSource): ComicsRepository {
-    override suspend fun getComicData(): Resource<APIResponse> {
-        return responseToResult(comicsRemoteDataSource.getComicData())
+    override suspend fun getComicData(comicNumber : Int): Resource<APIResponse> {
+        return responseToResult(comicsRemoteDataSource.getComicData(comicNumber))
     }
 
     override suspend fun getSearchedComicData(searchQuery: Int): Resource<APIResponse> {
