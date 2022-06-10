@@ -16,12 +16,19 @@
         <action
             android:id="@+id/action_comicsFragment_to_explainationFragment"
             app:destination="@id/explainationFragment" />
+        <argument
+            android:name="saved_comic"
+            app:argType="com.example.comicshub.data.model.APIResponse" />
     </fragment>
     <fragment
         android:id="@+id/explainationFragment"
         android:name="com.example.comicshub.ExplainationFragment"
         android:label="fragment_explaination"
-        tools:layout="@layout/fragment_explaination" />
+        tools:layout="@layout/fragment_explaination" >
+        <argument
+            android:name="comic_explanation"
+            app:argType="com.example.comicshub.data.model.APIResponse" />
+    </fragment>
     <fragment
         android:id="@+id/savedComicsFragment"
         android:name="com.example.comicshub.SavedComicsFragment"

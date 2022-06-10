@@ -5,35 +5,74 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.util.Log
 import androidx.lifecycle.*
 import com.example.comicshub.data.model.APIResponse
 import com.example.comicshub.data.util.Resource
 import com.example.comicshub.domain.usecase.GetComicDataUseCase
+import com.example.comicshub.domain.usecase.GetNewestComicDataUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.lang.Exception
+import java.util.ArrayList
 
 class ComicsViewModel(
     private val getComicDataUseCase: GetComicDataUseCase,
+    private val getNewestComicDataUseCase: GetNewestComicDataUseCase,
     private val app : Application
     ) : AndroidViewModel(app) {
-    private val newestComicPrivate : MutableLiveData<Resource<APIResponse>> = MutableLiveData()
-    val newestComicPublic : LiveData<Resource<APIResponse>>
-    get() = newestComicPrivate
+    private val comicDataPrivate : MutableLiveData<Resource<APIResponse>> = MutableLiveData()
+    val comicDataPublic : LiveData<Resource<APIResponse>>
+    get() = comicDataPrivate
 
-    fun getNewestComic (comicNumber : Int){
+    //list of random comics data
+     val incomingComicsList = ArrayList<APIResponse>()
+
+    fun getSelectedComic (comicNumber : Int?){
         viewModelScope.launch(Dispatchers.IO) {
-            newestComicPrivate.postValue(Resource.Loading()) //using this to make a progress bar for loading
+            comicDataPrivate.postValue(Resource.Loading()) //using this to make a progress bar for loading
 
             try {
                 if (isNetworkAvailable(app)) {
                     val apiResult = getComicDataUseCase.execute(comicNumber)
-                    newestComicPrivate.postValue(apiResult)
+                    comicDataPrivate.postValue(apiResult)
                 } else {
-                    newestComicPrivate.postValue(Resource.Error("Internet is unavailable"))
+                    comicDataPrivate.postValue(Resource.Error("Internet is unavailable"))
                 }
             }catch (error: Exception){
-                newestComicPrivate.postValue(Resource.Error(error.message.toString()))
+                comicDataPrivate.postValue(Resource.Error(error.message.toString()))
+            }
+        }
+    }
+
+    fun getNewestComic (){
+        viewModelScope.launch(Dispatchers.IO) {
+            comicDataPrivate.postValue(Resource.Loading()) //using this to make a progress bar for loading
+
+            try {
+                if (isNetworkAvailable(app)) {
+                    val apiResult = getNewestComicDataUseCase.execute()
+                    comicDataPrivate.postValue(apiResult)
+                } else {
+                    comicDataPrivate.postValue(Resource.Error("Internet is unavailable"))
+                }
+            }catch (error: Exception){
+                comicDataPrivate.postValue(Resource.Error(error.message.toString()))
+            }
+        }
+    }
+
+    fun getRandomListOfComics (){
+        for(i in 1..40){
+            viewModelScope.launch(Dispatchers.IO) {
+                try {
+                    if (isNetworkAvailable(app)) {
+                        val apiResult = getComicDataUseCase.execute(i)
+                        apiResult.data?.let { incomingComicsList.add(it) }
+                    }
+                }catch (error: Exception){
+                    Log.d("ComicsViewModel", error.toString())
+                }
             }
         }
     }

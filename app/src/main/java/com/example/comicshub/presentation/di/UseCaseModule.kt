@@ -2,6 +2,7 @@ package com.example.comicshub.presentation.di
 
 import com.example.comicshub.domain.repository.ComicsRepository
 import com.example.comicshub.domain.usecase.GetComicDataUseCase
+import com.example.comicshub.domain.usecase.GetNewestComicDataUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,5 +17,11 @@ class UseCaseModule {
     @Provides
     fun provideComicDataUseCase(comicsRepository: ComicsRepository) : GetComicDataUseCase{
         return GetComicDataUseCase(comicsRepository)
+    }
+
+    @Singleton
+    @Provides
+    fun provideNewestComicDataUseCase(comicsRepository: ComicsRepository) : GetNewestComicDataUseCase{
+        return GetNewestComicDataUseCase(comicsRepository)
     }
 }

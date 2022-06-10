@@ -1,6 +1,7 @@
 package com.example.comicshub.presentation.adapter
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -8,7 +9,10 @@ import com.example.comicshub.R
 import com.example.comicshub.data.model.APIResponse
 import com.example.comicshub.databinding.SavedComicItemBinding
 
-class SavedComicsAdapter (val savedComicsList : List<APIResponse>) : RecyclerView.Adapter<SavedComicsAdapter.SavedComicsViewHolder>() {
+class SavedComicsAdapter (
+    val savedComicsList : List<APIResponse>,
+    val adapterOnItemClickListener: AdapterOnItemClickListener
+    ) : RecyclerView.Adapter<SavedComicsAdapter.SavedComicsViewHolder>() {
 
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SavedComicsViewHolder {
@@ -41,5 +45,10 @@ class SavedComicsAdapter (val savedComicsList : List<APIResponse>) : RecyclerVie
                 }
             }
     }
+
+    interface AdapterOnItemClickListener{
+        fun onItemClicked(apiResponse: APIResponse, position: Int, view: View)
+    }
+
 
 }
