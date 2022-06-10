@@ -1,6 +1,7 @@
 package com.example.comicshub.data.model
 
 import com.google.gson.annotations.SerializedName
+import java.io.Serializable
 
 data class APIResponse(
     @SerializedName("alt")
@@ -25,4 +26,4 @@ data class APIResponse(
     val transcript: String,
     @SerializedName("year")
     val year: String
-)
+):Serializable

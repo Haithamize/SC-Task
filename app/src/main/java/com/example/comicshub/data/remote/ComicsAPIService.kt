@@ -8,5 +8,8 @@ import retrofit2.http.Path
 interface ComicsAPIService {
 
     @GET("{comicNumber}/info.0.json")
-    suspend fun getComicData (@Path(value = "comicNumber", encoded = true) comicNumber : Int) : Response<APIResponse>
+    suspend fun getComicData (@Path(value = "comicNumber", encoded = true) comicNumber : Int?) : Response<APIResponse>
+
+    @GET("/info.0.json")
+    suspend fun getNewestComicData () : Response<APIResponse>
 }

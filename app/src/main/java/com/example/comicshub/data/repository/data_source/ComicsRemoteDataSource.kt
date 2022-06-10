@@ -4,5 +4,6 @@ import com.example.comicshub.data.model.APIResponse
 import retrofit2.Response
 
 interface ComicsRemoteDataSource {
-    suspend fun getComicData (comicNumber : Int) : Response<APIResponse>
+    suspend fun getComicData (comicNumber : Int?) : Response<APIResponse>
+    suspend fun getNewestComicData () : Response<APIResponse>
 }

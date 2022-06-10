@@ -6,7 +6,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface ComicsRepository {
     //network communication functions
-    suspend fun getComicData(comicNumber : Int) : Resource<APIResponse>
+    suspend fun getComicData(comicNumber : Int?) : Resource<APIResponse>
+    suspend fun getNewestComicData() : Resource<APIResponse>
     suspend fun getSearchedComicData(searchQuery: Int) : Resource<APIResponse>
 
     //local database functions
