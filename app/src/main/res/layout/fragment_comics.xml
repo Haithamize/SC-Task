@@ -10,6 +10,14 @@
         android:orientation="vertical"
         tools:context=".ComicsFragment">
 
+        <androidx.appcompat.widget.SearchView
+            android:id="@+id/search_view"
+            android:background="@color/purple_500"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:iconifiedByDefault="false"
+            />
+
         <ProgressBar
             android:id="@+id/progressBar"
             style="?android:attr/progressBarStyle"

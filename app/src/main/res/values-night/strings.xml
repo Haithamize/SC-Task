@@ -11,6 +11,7 @@
     <string name="title">Title</string>
     <string name="transcript">Transcript</string>
     <string name="get_comic_explanation">GET COMIC EXPLANATION</string>
+    <string name="published_at">Published at:</string>
 
 
 </resources>

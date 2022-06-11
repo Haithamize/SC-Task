@@ -1,5 +1,7 @@
 package com.example.comicshub
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
@@ -8,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -21,23 +24,28 @@ import com.example.comicshub.data.util.Resource
 import com.example.comicshub.databinding.FragmentComicsBinding
 import com.example.comicshub.presentation.adapter.SavedComicsAdapter
 import com.example.comicshub.presentation.viewmodel.ComicsViewModel
+import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.properties.Delegates
 
 
 const val TAG = "ComicsFragment"
 const val COMIC_DATA = "COMIC_DATA"
+const val SEARCHED_LIST = "SEARCHED_LIST"
+
 class ComicsFragment : Fragment() {
 
-    private lateinit var viewModel : ComicsViewModel
-    private lateinit var binding : FragmentComicsBinding
-    private lateinit var comicData : APIResponse
-    private var selectedComicNumber : Int? = 1
+    private lateinit var viewModel: ComicsViewModel
+    private lateinit var binding: FragmentComicsBinding
+    private lateinit var comicData: APIResponse
+    private var selectedComicNumber: Int? = 1
+    private lateinit var listOfSearchedComics: ArrayList<APIResponse>
 
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    private val comicListAfterSearchWithText = ArrayList<APIResponse>()
+    private lateinit var sharedPref:SharedPreferences
+    private var firstTimeIn by Delegates.notNull<Boolean>()
 
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -47,27 +55,72 @@ class ComicsFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_comics, container, false)
     }
 
+    override fun onResume() {
+        super.onResume()
+        binding.apply {
+            searchView.setQuery("",false)
+            searchView.clearFocus()
+        }
+        firstTimeIn = sharedPref.getBoolean(FIRST_TIME_IN, true)
+        if (!firstTimeIn) {
+            arguments?.let {
+                arguments?.getSerializable(SEARCHED_COMIC_DATA)?.let { arg1 ->
+                    val comic = arg1 as APIResponse
+                    viewComicData(comic.num)
+                }
+            }
+        } else {
+            viewComicData(200)
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        with (sharedPref.edit()) {
+            putBoolean(FIRST_TIME_IN, true)
+            apply()
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentComicsBinding.bind(view)
         viewModel = (activity as MainActivity).viewModel
+         sharedPref = activity?.getPreferences(Context.MODE_PRIVATE) ?: return
+         firstTimeIn = sharedPref.getBoolean(FIRST_TIME_IN, false)
 
         viewModel.getRandomListOfComics()
 
-        viewComicData(200)
+
+        if (!firstTimeIn) {
+            arguments?.let {
+                arguments?.getSerializable(SEARCHED_COMIC_DATA)?.let { arg1 ->
+                    val comic = arg1 as APIResponse
+                    viewComicData(comic.num)
+                }
+
+            }
+        } else {
+            viewComicData(200)
+        }
 
 //        val args : ComicsFragmentArgs by navArgs()
 //        val comic = args.savedComic
 
+        setSearchView()
+
         binding.apply {
             btnGetExplanation.setOnClickListener {
                 val bundle = Bundle().apply {
-                    putSerializable(COMIC_DATA,comicData)
+                    putSerializable(COMIC_DATA, comicData)
                 }
-                findNavController().navigate(R.id.action_comicsFragment_to_explainationFragment, bundle)
+                findNavController().navigate(
+                    R.id.action_comicsFragment_to_explainationFragment,
+                    bundle
+                )
             }
             btnRandom.setOnClickListener {
-                selectedComicNumber = (1.. 2500). random()
+                selectedComicNumber = (1..2500).random()
                 viewComicData(selectedComicNumber)
             }
             btnNext.setOnClickListener {
@@ -89,32 +142,42 @@ class ComicsFragment : Fragment() {
         }
     }
 
-    private fun viewComicData(comicNumber : Int?) {
-        if(comicNumber == null){
+    private fun viewComicData(comicNumber: Int?) {
+        if (comicNumber == null) {
 //            Log.d("List of", "${viewModel.incomingComicsList}")
             viewModel.getNewestComic()
-            viewModel.comicDataPublic.observe(viewLifecycleOwner, Observer {response->
+            viewModel.comicDataPublic.observe(viewLifecycleOwner, Observer { response ->
                 selectedComicNumber = response.data?.num
-                Log.d(TAG, "${response.data}")
-                when(response){
+//                Log.d(TAG, "${response.data}")
+                when (response) {
                     is Resource.Success -> {
 //                     hideProgressBar()
                         binding.apply {
-                            response.data?.let {apiResponse ->
+                            response.data?.let { apiResponse ->
                                 comicData = apiResponse
                                 comicTitle.text = apiResponse.title
                                 comicTranscript.text = apiResponse.transcript
                             }
                             Glide.with(comicImgView.context)
                                 .load(response.data?.img)
-
                                 .listener(object : RequestListener<Drawable> {
-                                    override fun onResourceReady(resource: Drawable?, model: Any?, target: Target<Drawable>?, dataSource: DataSource?, isFirstResource: Boolean): Boolean {
+                                    override fun onResourceReady(
+                                        resource: Drawable?,
+                                        model: Any?,
+                                        target: Target<Drawable>?,
+                                        dataSource: DataSource?,
+                                        isFirstResource: Boolean
+                                    ): Boolean {
                                         progressBar.visibility = View.GONE
                                         return false
                                     }
 
-                                    override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>?, isFirstResource: Boolean): Boolean {
+                                    override fun onLoadFailed(
+                                        e: GlideException?,
+                                        model: Any?,
+                                        target: Target<Drawable>?,
+                                        isFirstResource: Boolean
+                                    ): Boolean {
                                         progressBar.visibility = View.GONE
                                         return false
                                     }
@@ -125,8 +188,9 @@ class ComicsFragment : Fragment() {
                     }
                     is Resource.Error -> {
 //                    hideProgressBar()
-                        response.message?.let{
-                            Toast.makeText(activity, "Unexpected error : $it", Toast.LENGTH_SHORT).show()
+                        response.message?.let {
+                            Toast.makeText(activity, "Unexpected error : $it", Toast.LENGTH_SHORT)
+                                .show()
                         }
                     }
                     is Resource.Loading -> {
@@ -134,15 +198,15 @@ class ComicsFragment : Fragment() {
                     }
                 }
             })
-        }else{
+        } else {
             viewModel.getSelectedComic(comicNumber)
-            viewModel.comicDataPublic.observe(viewLifecycleOwner, Observer {response->
-                Log.d(TAG, "${response.data}")
-                when(response){
+            viewModel.comicDataPublic.observe(viewLifecycleOwner, Observer { response ->
+//                Log.d(TAG, "${response.data}")
+                when (response) {
                     is Resource.Success -> {
 //                     hideProgressBar()
                         binding.apply {
-                            response.data?.let {apiResponse ->
+                            response.data?.let { apiResponse ->
                                 comicData = apiResponse
                                 comicTitle.text = apiResponse.title
                                 comicTranscript.text = apiResponse.transcript
@@ -150,12 +214,23 @@ class ComicsFragment : Fragment() {
                             Glide.with(comicImgView.context)
                                 .load(response.data?.img)
                                 .listener(object : RequestListener<Drawable> {
-                                    override fun onResourceReady(resource: Drawable?, model: Any?, target: Target<Drawable>?, dataSource: DataSource?, isFirstResource: Boolean): Boolean {
+                                    override fun onResourceReady(
+                                        resource: Drawable?,
+                                        model: Any?,
+                                        target: Target<Drawable>?,
+                                        dataSource: DataSource?,
+                                        isFirstResource: Boolean
+                                    ): Boolean {
                                         progressBar.visibility = View.GONE
                                         return false
                                     }
 
-                                    override fun onLoadFailed(e: GlideException?, model: Any?, target: Target<Drawable>?, isFirstResource: Boolean): Boolean {
+                                    override fun onLoadFailed(
+                                        e: GlideException?,
+                                        model: Any?,
+                                        target: Target<Drawable>?,
+                                        isFirstResource: Boolean
+                                    ): Boolean {
                                         progressBar.visibility = View.GONE
                                         return false
                                     }
@@ -166,7 +241,7 @@ class ComicsFragment : Fragment() {
                     }
                     is Resource.Error -> {
 //                    hideProgressBar()
-                        response.message?.let{
+                        response.message?.let {
                             Toast.makeText(activity, "Unexpected error : $it", Toast.LENGTH_SHORT)
                         }
                     }
@@ -178,6 +253,60 @@ class ComicsFragment : Fragment() {
         }
     }
 
+
+    private fun setSearchView() {
+        binding.searchView.queryHint = "Search for your favorite comic"
+        comicListAfterSearchWithText.clear()
+        binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                val bundle = Bundle().apply {
+                    val list = viewModel.incomingComicsList
+                    Log.d(TAG, list.toString())
+
+                    putSerializable(
+                        SEARCHED_LIST,
+                        getSearchedComicsListByText(query.toString(), list)
+                    )
+                }
+                findNavController().navigate(
+                    R.id.action_comicsFragment_to_searchedComicsFragment,
+                    bundle
+                )
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                return false
+            }
+
+        })
+
+        binding.searchView.setOnCloseListener(object : SearchView.OnCloseListener {
+            override fun onClose(): Boolean {
+                return false
+            }
+
+        })
+    }
+
+
+    private fun getSearchedComicsListByText(
+        searchQuery: String,
+        list: ArrayList<APIResponse>
+    ): ArrayList<APIResponse> {
+        val distinct = list?.distinctBy {
+            it?.title
+        }
+        if (distinct != null) {
+            for (comic in distinct) {
+                if (comic.title.lowercase(Locale.getDefault()).contains(searchQuery)) {
+                    comicListAfterSearchWithText.add(comic)
+                }
+            }
+        }
+
+        return comicListAfterSearchWithText
+    }
 
 
 //    private fun showProgressBar(){

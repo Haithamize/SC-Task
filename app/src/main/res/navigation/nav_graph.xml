@@ -19,6 +19,9 @@
         <argument
             android:name="saved_comic"
             app:argType="com.example.comicshub.data.model.APIResponse" />
+        <action
+            android:id="@+id/action_comicsFragment_to_searchedComicsFragment"
+            app:destination="@id/searchedComicsFragment" />
     </fragment>
     <fragment
         android:id="@+id/explainationFragment"
@@ -36,6 +39,14 @@
         tools:layout="@layout/fragment_saved_comics" >
         <action
             android:id="@+id/action_savedComicsFragment_to_comicsFragment"
+            app:destination="@id/comicsFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/searchedComicsFragment"
+        android:name="com.example.comicshub.SearchedComicsFragment"
+        android:label="SearchedComicsFragment" >
+        <action
+            android:id="@+id/action_searchedComicsFragment_to_comicsFragment"
             app:destination="@id/comicsFragment" />
     </fragment>
 </navigation>

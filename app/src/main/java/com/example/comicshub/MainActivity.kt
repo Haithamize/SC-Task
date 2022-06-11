@@ -1,5 +1,6 @@
 package com.example.comicshub
 
+import android.content.Context
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.databinding.DataBindingUtil
@@ -12,6 +13,7 @@ import com.example.comicshub.presentation.viewmodel.ComicsViewModelFactory
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+const val FIRST_TIME_IN = "FIRST_TIME_IN"
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
@@ -31,6 +33,12 @@ class MainActivity : AppCompatActivity() {
         binding.apply {
             bottomNavView.setupWithNavController(navController)
             viewModel = ViewModelProvider(this@MainActivity,viewModelFactory).get(ComicsViewModel::class.java)
+        }
+
+        val sharedPref = this.getPreferences(Context.MODE_PRIVATE) ?: return
+        with (sharedPref.edit()) {
+            putBoolean(FIRST_TIME_IN, true)
+            apply()
         }
     }
 }

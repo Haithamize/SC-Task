@@ -21,7 +21,7 @@ class SavedComicsAdapter (
     }
 
     override fun onBindViewHolder(holder: SavedComicsViewHolder, position: Int) {
-        holder.bind(savedComicsList[position])
+        holder.bind(savedComicsList[position], holder.itemView)
     }
 
     override fun getItemCount(): Int {
@@ -31,18 +31,21 @@ class SavedComicsAdapter (
     inner class SavedComicsViewHolder(private val binding : SavedComicItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-            fun bind(savedComicItem: APIResponse){
+
+
+            fun bind(savedComicItem: APIResponse, view: View){
                 val date = "${savedComicItem.day}/${savedComicItem.month}/${savedComicItem.year}"
                 binding.apply {
                     savedComicTitle.text = savedComicItem.title
                     savedComicPublishedAt.text = date
-                    savedComicAlt.text = savedComicItem.alt
-                    savedComicSource.text = savedComicItem.transcript
+                    savedComicTranscript.text = savedComicItem.transcript
+//                    savedComicSource.text = savedComicItem.transcript
                     Glide.with(savedComicImage.context)
                         .load(savedComicItem.img)
                         .fallback(R.drawable.ic_baseline_favorite_24)
                         .into(savedComicImage)
                 }
+                adapterOnItemClickListener.onItemClicked(savedComicItem, adapterPosition, view)
             }
     }
 

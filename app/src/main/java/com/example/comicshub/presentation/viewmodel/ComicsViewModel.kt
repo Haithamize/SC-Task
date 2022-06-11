@@ -25,8 +25,7 @@ class ComicsViewModel(
     val comicDataPublic : LiveData<Resource<APIResponse>>
     get() = comicDataPrivate
 
-    //list of random comics data
-     val incomingComicsList = ArrayList<APIResponse>()
+
 
     fun getSelectedComic (comicNumber : Int?){
         viewModelScope.launch(Dispatchers.IO) {
@@ -62,6 +61,10 @@ class ComicsViewModel(
         }
     }
 
+
+    //list of random comics data
+    val incomingComicsList = ArrayList<APIResponse>()
+    
     fun getRandomListOfComics (){
         for(i in 1..40){
             viewModelScope.launch(Dispatchers.IO) {
@@ -69,6 +72,7 @@ class ComicsViewModel(
                     if (isNetworkAvailable(app)) {
                         val apiResult = getComicDataUseCase.execute(i)
                         apiResult.data?.let { incomingComicsList.add(it) }
+                        Log.d("ComicsViewModel", incomingComicsList.toString())
                     }
                 }catch (error: Exception){
                     Log.d("ComicsViewModel", error.toString())
