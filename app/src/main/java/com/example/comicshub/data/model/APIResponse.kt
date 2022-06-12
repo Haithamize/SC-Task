@@ -1,29 +1,35 @@
 package com.example.comicshub.data.model
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
-
+const val TABLE_NAME = "TABLE_NAME"
+@Entity(
+    tableName = TABLE_NAME
+)
 data class APIResponse(
     @SerializedName("alt")
-    val alt: String,
+    val alt: String?,
     @SerializedName("day")
-    val day: String,
+    val day: String?,
     @SerializedName("img")
-    val img: String,
+    val img: String?,
     @SerializedName("link")
-    val link: String,
+    val link: String?,
     @SerializedName("month")
-    val month: String,
+    val month: String?,
     @SerializedName("news")
-    val news: String,
+    val news: String?,
     @SerializedName("num")
-    val num: Int,
+    @PrimaryKey
+    val num: Int?,
     @SerializedName("safe_title")
-    val safe_title: String,
+    val safe_title: String?,
     @SerializedName("title")
-    val title: String,
+    val title: String?,
     @SerializedName("transcript")
-    val transcript: String,
+    val transcript: String?,
     @SerializedName("year")
-    val year: String
+    val year: String?
 ):Serializable

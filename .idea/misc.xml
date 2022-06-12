@@ -3,6 +3,8 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/Antr/AndroidStudioProjects/ComicsHub/app/src/main/res/drawable/ic_baseline_favorite_24.xml" value="0.1815" />
+        <entry key="..\:/Users/Antr/AndroidStudioProjects/ComicsHub/app/src/main/res/drawable/ic_baseline_home_24.xml" value="0.1815" />
         <entry key="..\:/Users/Antr/AndroidStudioProjects/ComicsHub/app/src/main/res/layout/activity_main.xml" value="0.1" />
         <entry key="..\:/Users/Antr/AndroidStudioProjects/ComicsHub/app/src/main/res/layout/fragment_comics.xml" value="0.19383259911894274" />
         <entry key="..\:/Users/Antr/AndroidStudioProjects/ComicsHub/app/src/main/res/layout/fragment_explaination.xml" value="0.19090909090909092" />

@@ -1,6 +1,7 @@
 package com.example.comicshub.presentation.di
 
 import com.example.comicshub.data.repository.ComicsRepositoryImplementation
+import com.example.comicshub.data.repository.data_source.ComicsLocalDataSource
 import com.example.comicshub.data.repository.data_source.ComicsRemoteDataSource
 import com.example.comicshub.domain.repository.ComicsRepository
 import dagger.Module
@@ -15,7 +16,10 @@ class RepositoryModule {
 
     @Singleton
     @Provides
-    fun provideComicsRepository(comicsRemoteDataSource: ComicsRemoteDataSource) : ComicsRepository{
-        return ComicsRepositoryImplementation(comicsRemoteDataSource)
+    fun provideComicsRepository(
+        comicsRemoteDataSource: ComicsRemoteDataSource,
+        comicsLocalDataSource: ComicsLocalDataSource
+    ) : ComicsRepository{
+        return ComicsRepositoryImplementation(comicsRemoteDataSource,comicsLocalDataSource)
     }
 }

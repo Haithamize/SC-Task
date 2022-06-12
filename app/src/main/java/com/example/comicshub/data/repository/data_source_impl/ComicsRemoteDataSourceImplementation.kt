@@ -13,4 +13,8 @@ class ComicsRemoteDataSourceImplementation (private val comicsAPIService: Comics
     override suspend fun getNewestComicData(): Response<APIResponse> {
         return comicsAPIService.getNewestComicData()
     }
+
+    override fun getNewestComicDataForNotification(): Response<APIResponse> {
+        return comicsAPIService.getNewestComicDataForNotification()
+    }
 }

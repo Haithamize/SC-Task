@@ -8,9 +8,13 @@ interface ComicsRepository {
     //network communication functions
     suspend fun getComicData(comicNumber : Int?) : Resource<APIResponse>
     suspend fun getNewestComicData() : Resource<APIResponse>
-    suspend fun getSearchedComicData(searchQuery: Int) : Resource<APIResponse>
 
     //local database functions
     suspend fun saveComicData(apiResponse: APIResponse)
     fun getSavedComics() : Flow<List<APIResponse>>
+
+    //notifications process
+    fun getNewestComicDataForNotification() : Resource<APIResponse>
+
+
 }

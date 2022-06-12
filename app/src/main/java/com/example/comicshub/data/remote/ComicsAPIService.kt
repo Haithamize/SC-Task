@@ -12,4 +12,7 @@ interface ComicsAPIService {
 
     @GET("/info.0.json")
     suspend fun getNewestComicData () : Response<APIResponse>
+
+    @GET("/info.0.json")
+    fun getNewestComicDataForNotification () : Response<APIResponse>
 }
