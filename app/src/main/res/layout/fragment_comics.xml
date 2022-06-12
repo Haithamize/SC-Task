@@ -136,6 +136,18 @@
                 android:layout_gravity="center"
                 android:layout_height="wrap_content"
                 android:text="@string/get_comic_explanation" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:backgroundTint="@color/purple_500"
+                android:contentDescription="@string/saving_comics"
+                android:paddingEnd="10dp"
+                app:tint="@color/white"
+                android:paddingStart="10dp"
+                android:src="@drawable/fav_white_heart" />
         </LinearLayout>
 
     </LinearLayout>

@@ -7,10 +7,13 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
+import androidx.work.*
 import com.example.comicshub.databinding.ActivityMainBinding
 import com.example.comicshub.presentation.viewmodel.ComicsViewModel
 import com.example.comicshub.presentation.viewmodel.ComicsViewModelFactory
+import com.example.comicshub.workmanager.NotificationWorker
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 const val FIRST_TIME_IN = "FIRST_TIME_IN"
@@ -30,6 +33,7 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainerView) as NavHostFragment
         val navController = navHostFragment.navController
 
+
         binding.apply {
             bottomNavView.setupWithNavController(navController)
             viewModel = ViewModelProvider(this@MainActivity,viewModelFactory).get(ComicsViewModel::class.java)
@@ -41,4 +45,5 @@ class MainActivity : AppCompatActivity() {
             apply()
         }
     }
+
 }

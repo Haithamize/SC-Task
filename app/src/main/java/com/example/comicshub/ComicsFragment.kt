@@ -2,18 +2,21 @@ package com.example.comicshub
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
+import androidx.work.*
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
@@ -22,10 +25,12 @@ import com.bumptech.glide.request.target.Target
 import com.example.comicshub.data.model.APIResponse
 import com.example.comicshub.data.util.Resource
 import com.example.comicshub.databinding.FragmentComicsBinding
-import com.example.comicshub.presentation.adapter.SavedComicsAdapter
 import com.example.comicshub.presentation.viewmodel.ComicsViewModel
+import com.example.comicshub.presentation.viewmodel.NEWEST_COMIC_NUMBER
+import com.example.comicshub.workmanager.NotificationWorker
+import com.google.android.material.snackbar.Snackbar
 import java.util.*
-import kotlin.collections.ArrayList
+import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates
 
 
@@ -43,7 +48,7 @@ class ComicsFragment : Fragment() {
 
 
     private val comicListAfterSearchWithText = ArrayList<APIResponse>()
-    private lateinit var sharedPref:SharedPreferences
+    private lateinit var sharedPref: SharedPreferences
     private var firstTimeIn by Delegates.notNull<Boolean>()
 
 
@@ -58,15 +63,28 @@ class ComicsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         binding.apply {
-            searchView.setQuery("",false)
+            searchView.setQuery("", false)
             searchView.clearFocus()
         }
         firstTimeIn = sharedPref.getBoolean(FIRST_TIME_IN, true)
         if (!firstTimeIn) {
             arguments?.let {
-                arguments?.getSerializable(SEARCHED_COMIC_DATA)?.let { arg1 ->
-                    val comic = arg1 as APIResponse
-                    viewComicData(comic.num)
+                when {
+                    requireArguments().containsKey(SEARCHED_COMIC_DATA) -> {
+                        arguments?.getSerializable(SEARCHED_COMIC_DATA)?.let { arg1 ->
+                            val comic = arg1 as APIResponse
+                            comicData = comic
+                            viewComicData(comic.num)
+                        }
+                    }
+                    requireArguments().containsKey(SAVED_COMIC_DATA) -> {
+                        arguments?.getSerializable(SAVED_COMIC_DATA)?.let { arg1 ->
+                            val comic = arg1 as APIResponse
+                            comicData = comic
+                            viewComicData(comic.num)
+                        }
+                    }
+                    else -> return
                 }
             }
         } else {
@@ -76,7 +94,7 @@ class ComicsFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        with (sharedPref.edit()) {
+        with(sharedPref.edit()) {
             putBoolean(FIRST_TIME_IN, true)
             apply()
         }
@@ -86,30 +104,52 @@ class ComicsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentComicsBinding.bind(view)
         viewModel = (activity as MainActivity).viewModel
-         sharedPref = activity?.getPreferences(Context.MODE_PRIVATE) ?: return
-         firstTimeIn = sharedPref.getBoolean(FIRST_TIME_IN, false)
+        sharedPref = activity?.getPreferences(Context.MODE_PRIVATE) ?: return
+        firstTimeIn = sharedPref.getBoolean(FIRST_TIME_IN, false)
 
         viewModel.getRandomListOfComics()
+
+        getNewestComicNumberAndSaveIt()
+
+
+        Handler().postDelayed({
+            setPeriodicWorkRequest()
+        }, 1000)
+
 
 
         if (!firstTimeIn) {
             arguments?.let {
-                arguments?.getSerializable(SEARCHED_COMIC_DATA)?.let { arg1 ->
-                    val comic = arg1 as APIResponse
-                    viewComicData(comic.num)
+                when {
+                    requireArguments().containsKey(SEARCHED_COMIC_DATA) -> {
+                        arguments?.getSerializable(SEARCHED_COMIC_DATA)?.let { arg1 ->
+                            val comic = arg1 as APIResponse
+                            comicData = comic
+                            viewComicData(comic.num)
+                        }
+                    }
+                    requireArguments().containsKey(SAVED_COMIC_DATA) -> {
+                        arguments?.getSerializable(SAVED_COMIC_DATA)?.let { arg1 ->
+                            val comic = arg1 as APIResponse
+                            comicData = comic
+                            viewComicData(comic.num)
+                        }
+                    }
+                    else -> return
                 }
-
             }
         } else {
             viewComicData(200)
         }
 
-//        val args : ComicsFragmentArgs by navArgs()
-//        val comic = args.savedComic
 
         setSearchView()
 
         binding.apply {
+            fab.setOnClickListener {
+                viewModel.saveComicDataToDatabase(comicData)
+                Snackbar.make(view, "Comic saved successfully", Snackbar.LENGTH_LONG).show()
+            }
             btnGetExplanation.setOnClickListener {
                 val bundle = Bundle().apply {
                     putSerializable(COMIC_DATA, comicData)
@@ -140,6 +180,33 @@ class ComicsFragment : Fragment() {
                 viewComicData(selectedComicNumber)
             }
         }
+    }
+
+
+
+    //creating the periodic workmanager
+    private fun setPeriodicWorkRequest() {
+        val sharedPref = requireActivity().getPreferences(Context.MODE_PRIVATE)
+        val lastCheckedNewestNumber = sharedPref.getInt(NEWEST_COMIC_NUMBER,0)
+
+        val data = Data.Builder()
+            .putInt(NEWEST_COMIC_NUMBER,lastCheckedNewestNumber)
+            .build()
+        val constraint = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val workManager = WorkManager.getInstance(requireContext())
+        val periodicWorkRequest = PeriodicWorkRequest.Builder(NotificationWorker::class.java,16, TimeUnit.MINUTES)
+            .setConstraints(constraint)
+            .setInputData(data)
+            .build()
+        workManager.enqueue(periodicWorkRequest)
+    }
+
+
+    private fun getNewestComicNumberAndSaveIt() {
+        viewModel.saveNewestComicNumber(requireActivity())
     }
 
     private fun viewComicData(comicNumber: Int?) {
@@ -255,7 +322,9 @@ class ComicsFragment : Fragment() {
 
 
     private fun setSearchView() {
-        binding.searchView.queryHint = "Search for your favorite comic"
+        binding.apply {
+            searchView.queryHint = "Search for your favorite comic"
+        }
         comicListAfterSearchWithText.clear()
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -299,7 +368,7 @@ class ComicsFragment : Fragment() {
         }
         if (distinct != null) {
             for (comic in distinct) {
-                if (comic.title.lowercase(Locale.getDefault()).contains(searchQuery)) {
+                if (comic.title?.lowercase(Locale.getDefault())?.contains(searchQuery) == true) {
                     comicListAfterSearchWithText.add(comic)
                 }
             }

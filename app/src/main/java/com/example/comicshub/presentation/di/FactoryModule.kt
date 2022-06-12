@@ -1,8 +1,7 @@
 package com.example.comicshub.presentation.di
 
 import android.app.Application
-import com.example.comicshub.domain.usecase.GetComicDataUseCase
-import com.example.comicshub.domain.usecase.GetNewestComicDataUseCase
+import com.example.comicshub.domain.usecase.*
 import com.example.comicshub.presentation.viewmodel.ComicsViewModelFactory
 import dagger.Module
 import dagger.Provides
@@ -19,8 +18,18 @@ class FactoryModule {
     fun provideComicsViewModelFactory(
         application: Application,
         getComicsDataUseCase: GetComicDataUseCase,
-        getNewestComicDataUseCase: GetNewestComicDataUseCase
-    ): ComicsViewModelFactory{
-        return ComicsViewModelFactory(getComicsDataUseCase, getNewestComicDataUseCase,application)
+        saveComicUseCase: SaveComicUseCase,
+        getSavedComicsUseCase: GetSavedComicsUseCase,
+        getNewestComicDataUseCase: GetNewestComicDataUseCase,
+        notifyUserUseCase: NotifyUserUseCase,
+    ): ComicsViewModelFactory {
+        return ComicsViewModelFactory(
+            getComicsDataUseCase,
+            getNewestComicDataUseCase,
+            saveComicUseCase,
+            getSavedComicsUseCase,
+            notifyUserUseCase,
+            application
+        )
     }
 }

@@ -19,6 +19,9 @@
         <argument
             android:name="saved_comic"
             app:argType="com.example.comicshub.data.model.APIResponse" />
+        <argument
+            android:name="searched_comic"
+            app:argType="com.example.comicshub.data.model.APIResponse" />
         <action
             android:id="@+id/action_comicsFragment_to_searchedComicsFragment"
             app:destination="@id/searchedComicsFragment" />
