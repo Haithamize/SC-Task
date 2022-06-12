@@ -42,7 +42,7 @@ class SavedComicsAdapter (
 //                    savedComicSource.text = savedComicItem.transcript
                     Glide.with(savedComicImage.context)
                         .load(savedComicItem.img)
-                        .fallback(R.drawable.ic_baseline_favorite_24)
+                        .fallback(R.drawable.fav_white_heart)
                         .into(savedComicImage)
                 }
                 adapterOnItemClickListener.onItemClicked(savedComicItem, adapterPosition, view)

@@ -1,10 +1,12 @@
 package com.example.comicshub
 
+import android.content.Context
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.comicshub.data.model.APIResponse
@@ -40,17 +42,20 @@ class SavedComicsFragment : Fragment(), SavedComicsAdapter.AdapterOnItemClickLis
         binding = FragmentSavedComicsBinding.bind(view)
         viewModel = (activity as MainActivity).viewModel
 
-//        viewSavedComicsList()
-        initRecyclerView()
+        viewModel.getAllSavedComics().observe(viewLifecycleOwner, Observer {
+
+            initRecyclerView(it)
+
+        })
 
     }
 
-    private fun initRecyclerView() {
-//        savedComicsAdapter = SavedComicsAdapter()
-//        binding.apply {
-//            savedComicsRecyclerView.adapter = savedComicsAdapter
-//            savedComicsRecyclerView.layoutManager = LinearLayoutManager(activity)
-//        }
+    private fun initRecyclerView(savedComics: List<APIResponse>) {
+        savedComicsAdapter = SavedComicsAdapter(savedComics,this)
+        binding.apply {
+            savedComicsRecyclerView.adapter = savedComicsAdapter
+            savedComicsRecyclerView.layoutManager = LinearLayoutManager(activity)
+        }
 
     }
 
@@ -59,29 +64,13 @@ class SavedComicsFragment : Fragment(), SavedComicsAdapter.AdapterOnItemClickLis
             val bundle = Bundle().apply {
                 putSerializable(SAVED_COMIC_DATA, apiResponse)
             }
+            val sharedPref = activity?.getPreferences(Context.MODE_PRIVATE)
+            with (sharedPref?.edit()) {
+                this?.putBoolean(FIRST_TIME_IN, false)
+                this?.apply()
+            }
             findNavController().navigate(R.id.action_savedComicsFragment_to_comicsFragment,bundle)
         }
     }
-
-//    private fun viewSavedComicsList() {
-//        viewModel.getNewestComic()
-//        viewModel.newestComicPublic.observe(viewLifecycleOwner, Observer {
-//            when(it){
-//                is Resource.Success -> {
-//                    hideProgressBar()
-//                    it.data?.let {
-//                        n
-//                    }
-//                }
-//                is Resource.Error -> {
-//
-//                }
-//                is Resource.Loading -> {
-//
-//                }
-//            }
-//        })
-//    }
-
 
 }
