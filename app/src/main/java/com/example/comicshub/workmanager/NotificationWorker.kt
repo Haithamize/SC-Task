@@ -13,11 +13,7 @@ import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
 import com.example.comicshub.R
 import com.example.comicshub.presentation.viewmodel.NEWEST_COMIC_NUMBER
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import okhttp3.*
-import org.json.JSONObject
-import java.io.IOException
+
 
 const val VERBOSE_NOTIFICATION_CHANNEL_NAME_P =
     "Verbose WorkManager Notifications"
@@ -37,7 +33,7 @@ class NotificationWorker(
     override fun doWork(): Result {
         try {
             val lastCheckedNewestNumber = inputData.getInt(NEWEST_COMIC_NUMBER, 0)
-            Log.d("WORKMANAGER prefNumb", "${lastCheckedNewestNumber}")
+            Log.d("WORKMANAGER prefNumb", lastCheckedNewestNumber.toString())
 
             fetchNewestComicNumber(lastCheckedNewestNumber)
 
@@ -56,7 +52,6 @@ class NotificationWorker(
             url,
             null,
             {
-                Log.d("json body", it["num"].toString())
                 if(lastCheckedNewestNumber < it["num"].toString().toInt()){
                     makeStatusNotification("ComicsHub","A new comic has been released", applicationContext)
                 }

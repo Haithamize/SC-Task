@@ -1,18 +1,19 @@
 package com.example.comicshub
 
-import android.content.Context
-import android.content.SharedPreferences
-import android.graphics.Color
+import android.content.*
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
+import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
@@ -21,7 +22,9 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.target.Target
+import com.bumptech.glide.request.transition.Transition
 import com.example.comicshub.data.model.APIResponse
 import com.example.comicshub.data.util.Resource
 import com.example.comicshub.databinding.FragmentComicsBinding
@@ -29,6 +32,9 @@ import com.example.comicshub.presentation.viewmodel.ComicsViewModel
 import com.example.comicshub.presentation.viewmodel.NEWEST_COMIC_NUMBER
 import com.example.comicshub.workmanager.NotificationWorker
 import com.google.android.material.snackbar.Snackbar
+import com.squareup.picasso.Picasso
+import java.io.File
+import java.io.FileOutputStream
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.properties.Delegates
@@ -44,7 +50,6 @@ class ComicsFragment : Fragment() {
     private lateinit var binding: FragmentComicsBinding
     private lateinit var comicData: APIResponse
     private var selectedComicNumber: Int? = 1
-    private lateinit var listOfSearchedComics: ArrayList<APIResponse>
 
 
     private val comicListAfterSearchWithText = ArrayList<APIResponse>()
@@ -87,8 +92,6 @@ class ComicsFragment : Fragment() {
                     else -> return
                 }
             }
-        } else {
-            viewComicData(200)
         }
     }
 
@@ -146,7 +149,11 @@ class ComicsFragment : Fragment() {
         setSearchView()
 
         binding.apply {
-            fab.setOnClickListener {
+            fabShareComic.setOnClickListener {
+                shareComicViaWhatsapp(comicData)
+            }
+
+            fabSaveToFavorites.setOnClickListener {
                 viewModel.saveComicDataToDatabase(comicData)
                 Snackbar.make(view, "Comic saved successfully", Snackbar.LENGTH_LONG).show()
             }
@@ -182,26 +189,52 @@ class ComicsFragment : Fragment() {
         }
     }
 
+    private fun shareComicViaWhatsapp(comic: APIResponse?) {
+        val bitmapDrawable = binding.comicImgView.drawable as BitmapDrawable
+        val bitmap = bitmapDrawable.bitmap
+        val bitmapPath = MediaStore.Images.Media.insertImage(requireActivity().contentResolver, bitmap, "Check this comic", "Comic")
+        val bitmapUri = Uri.parse(bitmapPath)
+        val message = "Check out this comic:\n${comic?.title}\nYou can also get the comic explanation from here:\nhttps://www.explainxkcd.com/wiki/index.php/${comic?.num}"
+        val intent = Intent()
+        intent.apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_STREAM, bitmapUri)
+            type = "image/*"
+            putExtra(Intent.EXTRA_TEXT, message)
+            type = "text/plain"
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            try {
+                startActivity(intent)
+            } catch (ex: ActivityNotFoundException) {
+                Toast.makeText(activity, "The application you chose has not been installed.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
 
     //creating the periodic workmanager
     private fun setPeriodicWorkRequest() {
         val sharedPref = requireActivity().getPreferences(Context.MODE_PRIVATE)
-        val lastCheckedNewestNumber = sharedPref.getInt(NEWEST_COMIC_NUMBER,0)
+        val lastCheckedNewestNumber = sharedPref.getInt(NEWEST_COMIC_NUMBER, 0)
 
         val data = Data.Builder()
-            .putInt(NEWEST_COMIC_NUMBER,lastCheckedNewestNumber)
+            .putInt(NEWEST_COMIC_NUMBER, lastCheckedNewestNumber)
             .build()
         val constraint = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
         val workManager = WorkManager.getInstance(requireContext())
-        val periodicWorkRequest = PeriodicWorkRequest.Builder(NotificationWorker::class.java,16, TimeUnit.MINUTES)
-            .setConstraints(constraint)
-            .setInputData(data)
-            .build()
-        workManager.enqueue(periodicWorkRequest)
+        val periodicWorkRequest =
+            PeriodicWorkRequest.Builder(NotificationWorker::class.java, 16, TimeUnit.MINUTES)
+                .setConstraints(constraint)
+                .setInputData(data)
+                .build()
+        workManager.enqueueUniquePeriodicWork(
+            periodicWorkRequest.id.toString(),
+            ExistingPeriodicWorkPolicy.KEEP,
+            periodicWorkRequest
+        )
     }
 
 
@@ -211,11 +244,9 @@ class ComicsFragment : Fragment() {
 
     private fun viewComicData(comicNumber: Int?) {
         if (comicNumber == null) {
-//            Log.d("List of", "${viewModel.incomingComicsList}")
             viewModel.getNewestComic()
             viewModel.comicDataPublic.observe(viewLifecycleOwner, Observer { response ->
                 selectedComicNumber = response.data?.num
-//                Log.d(TAG, "${response.data}")
                 when (response) {
                     is Resource.Success -> {
 //                     hideProgressBar()
@@ -224,6 +255,8 @@ class ComicsFragment : Fragment() {
                                 comicData = apiResponse
                                 comicTitle.text = apiResponse.title
                                 comicTranscript.text = apiResponse.transcript
+                                Picasso.get().load(apiResponse.img).into(binding.comicImgView)
+
                             }
                             Glide.with(comicImgView.context)
                                 .load(response.data?.img)
@@ -268,15 +301,15 @@ class ComicsFragment : Fragment() {
         } else {
             viewModel.getSelectedComic(comicNumber)
             viewModel.comicDataPublic.observe(viewLifecycleOwner, Observer { response ->
-//                Log.d(TAG, "${response.data}")
                 when (response) {
                     is Resource.Success -> {
-//                     hideProgressBar()
                         binding.apply {
                             response.data?.let { apiResponse ->
                                 comicData = apiResponse
                                 comicTitle.text = apiResponse.title
                                 comicTranscript.text = apiResponse.transcript
+                                Picasso.get().load(apiResponse.img).into(binding.comicImgView)
+
                             }
                             Glide.with(comicImgView.context)
                                 .load(response.data?.img)
@@ -307,7 +340,6 @@ class ComicsFragment : Fragment() {
 
                     }
                     is Resource.Error -> {
-//                    hideProgressBar()
                         response.message?.let {
                             Toast.makeText(activity, "Unexpected error : $it", Toast.LENGTH_SHORT)
                         }
@@ -330,7 +362,6 @@ class ComicsFragment : Fragment() {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 val bundle = Bundle().apply {
                     val list = viewModel.incomingComicsList
-                    Log.d(TAG, list.toString())
 
                     putSerializable(
                         SEARCHED_LIST,
