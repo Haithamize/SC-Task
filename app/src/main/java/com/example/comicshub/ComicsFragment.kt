@@ -112,12 +112,11 @@ class ComicsFragment : Fragment() {
 
         viewModel.getRandomListOfComics()
 
-        getNewestComicNumberAndSaveIt()
 
 
         Handler().postDelayed({
             setPeriodicWorkRequest()
-        }, 1000)
+        }, 2000)
 
 
 
@@ -171,20 +170,29 @@ class ComicsFragment : Fragment() {
                 viewComicData(selectedComicNumber)
             }
             btnNext.setOnClickListener {
+                val latestComicNum = sharedPref.getInt(NEWEST_COMIC_NUMBER,0)
                 selectedComicNumber = selectedComicNumber?.plus(1)
-                viewComicData(selectedComicNumber)
+                if(selectedComicNumber!! > latestComicNum){
+                    Snackbar.make(view, "This is the latest comic", Snackbar.LENGTH_SHORT).show()
+                }else {
+                    viewComicData(selectedComicNumber)
+                }
             }
             btnPrev.setOnClickListener {
                 selectedComicNumber = selectedComicNumber?.minus(1)
-                viewComicData(selectedComicNumber)
+                if(selectedComicNumber!! <= 0) {
+//                    viewComicData(1)
+                    Snackbar.make(view, "No previous comics", Snackbar.LENGTH_SHORT).show()
+                }else{
+                    viewComicData(selectedComicNumber)
+                }
             }
             btnFirst.setOnClickListener {
                 selectedComicNumber = 1
                 viewComicData(selectedComicNumber)
             }
             btnLast.setOnClickListener {
-                selectedComicNumber = null
-                viewComicData(selectedComicNumber)
+                viewComicData(null)
             }
         }
     }
@@ -235,11 +243,6 @@ class ComicsFragment : Fragment() {
             ExistingPeriodicWorkPolicy.KEEP,
             periodicWorkRequest
         )
-    }
-
-
-    private fun getNewestComicNumberAndSaveIt() {
-        viewModel.saveNewestComicNumber(requireActivity())
     }
 
     private fun viewComicData(comicNumber: Int?) {

@@ -24,6 +24,7 @@ class MainActivity : AppCompatActivity() {
      lateinit var viewModelFactory: ComicsViewModelFactory
 
     private lateinit var binding: ActivityMainBinding
+
     lateinit var viewModel : ComicsViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +45,8 @@ class MainActivity : AppCompatActivity() {
             putBoolean(FIRST_TIME_IN, true)
             apply()
         }
+
+        viewModel.saveNewestComicNumber(this)
     }
 
 }
