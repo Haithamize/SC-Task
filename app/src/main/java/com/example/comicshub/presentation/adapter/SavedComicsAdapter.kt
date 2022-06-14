@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.example.comicshub.R
 import com.example.comicshub.data.model.APIResponse
 import com.example.comicshub.databinding.SavedComicItemBinding
@@ -42,6 +43,7 @@ class SavedComicsAdapter (
 //                    savedComicSource.text = savedComicItem.transcript
                     Glide.with(savedComicImage.context)
                         .load(savedComicItem.img)
+                        .apply( RequestOptions().override(1000, 500))
                         .fallback(R.drawable.fav_white_heart)
                         .into(savedComicImage)
                 }

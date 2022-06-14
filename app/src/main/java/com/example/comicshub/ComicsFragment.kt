@@ -92,6 +92,8 @@ class ComicsFragment : Fragment() {
                     else -> return
                 }
             }
+        }else{
+            viewComicData(selectedComicNumber)
         }
     }
 
@@ -141,7 +143,7 @@ class ComicsFragment : Fragment() {
                 }
             }
         } else {
-            viewComicData(200)
+            viewComicData(selectedComicNumber)
         }
 
 
@@ -222,27 +224,30 @@ class ComicsFragment : Fragment() {
 
     //creating the periodic workmanager
     private fun setPeriodicWorkRequest() {
-        val sharedPref = requireActivity().getPreferences(Context.MODE_PRIVATE)
-        val lastCheckedNewestNumber = sharedPref.getInt(NEWEST_COMIC_NUMBER, 0)
-
-        val data = Data.Builder()
-            .putInt(NEWEST_COMIC_NUMBER, lastCheckedNewestNumber)
-            .build()
-        val constraint = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-
-        val workManager = WorkManager.getInstance(requireContext())
-        val periodicWorkRequest =
-            PeriodicWorkRequest.Builder(NotificationWorker::class.java, 16, TimeUnit.MINUTES)
-                .setConstraints(constraint)
-                .setInputData(data)
+        if(isAdded()) {
+            val sharedPref = requireActivity().getPreferences(Context.MODE_PRIVATE)
+            val lastCheckedNewestNumber = sharedPref.getInt(NEWEST_COMIC_NUMBER, 0)
+            val data = Data.Builder()
+                .putInt(NEWEST_COMIC_NUMBER, lastCheckedNewestNumber)
                 .build()
-        workManager.enqueueUniquePeriodicWork(
-            periodicWorkRequest.id.toString(),
-            ExistingPeriodicWorkPolicy.KEEP,
-            periodicWorkRequest
-        )
+            val constraint = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+
+            val workManager = WorkManager.getInstance(requireContext())
+            val periodicWorkRequest =
+                PeriodicWorkRequest.Builder(NotificationWorker::class.java, 16, TimeUnit.MINUTES)
+                    .setConstraints(constraint)
+                    .setInputData(data)
+                    .build()
+            workManager.enqueueUniquePeriodicWork(
+                periodicWorkRequest.id.toString(),
+                ExistingPeriodicWorkPolicy.KEEP,
+                periodicWorkRequest
+            )
+        }else{
+            return
+        }
     }
 
     private fun viewComicData(comicNumber: Int?) {

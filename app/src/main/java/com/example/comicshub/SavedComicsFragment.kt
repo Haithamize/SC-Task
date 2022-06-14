@@ -55,6 +55,7 @@ class SavedComicsFragment : Fragment(), SavedComicsAdapter.AdapterOnItemClickLis
         binding.apply {
             savedComicsRecyclerView.adapter = savedComicsAdapter
             savedComicsRecyclerView.layoutManager = LinearLayoutManager(activity)
+            savedComicsRecyclerView.setHasFixedSize(true)
         }
 
     }

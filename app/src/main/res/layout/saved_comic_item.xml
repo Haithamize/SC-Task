@@ -6,8 +6,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:background="@color/list_background"
+        android:background="@color/purple_500"
         android:orientation="vertical">
+        <View
+            android:layout_height="0dp"
+            android:layout_width="match_parent"
+            android:visibility="invisible" />
 
         <TextView
             android:id="@+id/savedComicTitle"
@@ -39,11 +43,12 @@
                 android:layout_weight="3"
                 android:orientation="vertical">
 
+
                 <TextView
                     android:id="@+id/savedComicTranscript"
                     android:layout_width="wrap_content"
                     android:layout_height="0dp"
-                    android:layout_weight="3"
+                    android:layout_weight="1"
                     android:ellipsize="end"
                     android:maxLines="5"
                     android:text="@string/description"
@@ -52,7 +57,7 @@
 
                 <View
                     android:layout_width="8dp"
-                    android:layout_height="17dp"/>
+                    android:layout_height="17dp" />
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -67,7 +72,7 @@
 
                     <View
                         android:layout_width="8dp"
-                        android:layout_height="15dp"/>
+                        android:layout_height="15dp" />
 
                     <TextView
                         android:id="@+id/savedComicPublishedAt"
@@ -75,13 +80,6 @@
                         android:layout_height="wrap_content"
                         android:textColor="@android:color/darker_gray" />
                 </LinearLayout>
-
-                <!--            <TextView-->
-                <!--                android:id="@+id/savedComicSource"-->
-                <!--                android:layout_width="match_parent"-->
-                <!--                android:layout_height="wrap_content"-->
-                <!--                android:textColor="@color/list_text"-->
-                <!--                />-->
 
             </LinearLayout>
 
